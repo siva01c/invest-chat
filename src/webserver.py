@@ -1,7 +1,8 @@
 from flask import Flask, render_template, request, jsonify, make_response
-from ai_service import openai_chat
+from ai_service import AIService
 
 app = Flask(__name__)
+ai_service = AIService()
 
 @app.route("/")   
 def home():
@@ -10,12 +11,12 @@ def home():
 @app.route("/generate", methods=['POST'])
 def get_bot_response():
     data = request.json
-    user_text = data.get('msg', '')
+    user_input = data.get('msg', '')
 
-    if user_text:
-        response = openai_chat(user_text)
+    if user_input:
+       response = ai_service.chat(user_input)
     else:
-        response = "Please ask a question."
+       response = "Please ask a question."
 
     return jsonify({"response": response})
 

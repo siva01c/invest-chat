@@ -1,6 +1,6 @@
 # Invest Chat  - simple RAG demo app
 
-*** This chat is designed to answer questions exclusively using data from the datasource. If the required data is missing from the datasource, the LLM will respond with "I don't know." ***
+** This chat is designed to answer questions exclusively using data from the datasource. If the required data is missing from the datasource, the LLM will respond with "I don't know.". If you need clear chat history, ask assistant to do it. **
 
 Invest Chat is a project written in Python 3.8. Before starting, copy `.env_example` to a new file named `.env` and add your `OPENAI_API_KEY`.  
 
@@ -88,4 +88,5 @@ The `/src` folder contains all custom Python modules. Below is an overview of it
 - `/src/pdf_extractor.py`: Script to extract data from PDFs.  
 - `/src/embeddings.py`: Script to convert extracted data into vectors and store them in ChromaDB.  
 - `/src/retrieve.py`: Script to search for vectors similar to the user’s query.  
-- `/src/ai_service.py`: Script to create the system prompt, attach the retrieved context, and send a payload to OpenAI.  
+- `/src/ai_service.py`: Script to create the system prompt, attach the retrieved context, and send a payload to OpenAI.
+- `/src/chat_history.py`: User chat history object.
