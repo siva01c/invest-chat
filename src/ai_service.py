@@ -7,9 +7,9 @@ from retrieve import search_similar_text
 from chat_history import ChatHistory
 
 class AIService:
-    def __init__(self, model_name: str = "gpt-3.5-turbo", 
+    def __init__(self, model_name: str = "gpt-4o-mini", 
                  max_history: int = 5, 
-                 temperature: float = 0.2,
+                 temperature: float = 0,
                  context_window: int = 3):
         """
         Initialize the AI service.
@@ -90,6 +90,9 @@ class AIService:
             ])
         
         messages.append({"role": "user", "content": user_question})
+
+        print(f"Messages: {messages}")
+        
         return messages
 
     def generate_response(self, messages: List[Dict[str, str]]) -> str:
@@ -167,13 +170,16 @@ class AIService:
         ]
         
         response = self.client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4o-mini",
             messages=messages,
             temperature=0
         )
+
+        prompt_category = response.choices[0].message.content.lower()
+        print(f"Prompt category: {prompt_category}")
         
         # Check if the response classifies it as a clear history request
-        if "clear history" in response.choices[0].message.content.lower():
+        if "clear history" in prompt_category:
             self.chat_history.clear_history()
             return "History cleared"
         
