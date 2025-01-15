@@ -1,5 +1,7 @@
 database/*
+!database/.gitkeep
 datasources/*
+!datasources/.gitkeep
 .env
 .vscode/*
 src/__pycache__/*
