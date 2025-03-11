@@ -1,6 +1,8 @@
 from collections import deque
 from typing import List, Optional
 from dataclasses import dataclass
+import time
+import asyncio
 
 @dataclass
 class ChatEntry:
@@ -8,6 +10,11 @@ class ChatEntry:
     user_message: str
     assistant_response: str
     timestamp: Optional[float] = None
+
+    def __post_init__(self):
+        """Set timestamp to current time if not provided"""
+        if self.timestamp is None:
+            self.timestamp = time.time()
 
 class ChatHistory:
     def __init__(self, max_history: int = 10):
@@ -34,13 +41,39 @@ class ChatHistory:
         )
         self.history.append(entry)
     
+    # This method could be async if we were storing history in a database
+    async def add_interaction_async(self, user_message: str, assistant_response: str) -> None:
+        """
+        Add a new chat interaction to the history asynchronously
+        
+        Args:
+            user_message (str): The message from the user
+            assistant_response (str): The response from the assistant
+        """
+        # Create entry
+        entry = ChatEntry(
+            user_message=user_message,
+            assistant_response=assistant_response
+        )
+        # For demonstration purposes, using to_thread even though this is an in-memory operation
+        # In a real application, this would be a database call
+        await asyncio.to_thread(self.history.append, entry)
+    
     def get_user_messages(self) -> List[str]:
         """Get all user messages in chronological order"""
         return [entry.user_message for entry in self.history]
     
+    async def get_user_messages_async(self) -> List[str]:
+        """Get all user messages in chronological order asynchronously"""
+        return await asyncio.to_thread(lambda: [entry.user_message for entry in self.history])
+    
     def get_assistant_responses(self) -> List[str]:
         """Get all assistant responses in chronological order"""
         return [entry.assistant_response for entry in self.history]
+    
+    async def get_assistant_responses_async(self) -> List[str]:
+        """Get all assistant responses in chronological order asynchronously"""
+        return await asyncio.to_thread(lambda: [entry.assistant_response for entry in self.history])
     
     def get_last_n_interactions(self, n: int) -> List[ChatEntry]:
         """
@@ -54,13 +87,33 @@ class ChatHistory:
         """
         return list(self.history)[-n:]
     
+    async def get_last_n_interactions_async(self, n: int) -> List[ChatEntry]:
+        """
+        Get the last n chat interactions asynchronously
+        
+        Args:
+            n (int): Number of interactions to retrieve
+            
+        Returns:
+            List of the last n ChatEntry objects
+        """
+        return await asyncio.to_thread(lambda: list(self.history)[-n:])
+    
     def clear_history(self) -> None:
         """Clear all chat history"""
         self.history.clear()
     
+    async def clear_history_async(self) -> None:
+        """Clear all chat history asynchronously"""
+        await asyncio.to_thread(self.history.clear)
+    
     def get_full_history(self) -> List[ChatEntry]:
         """Get all chat interactions as a list"""
         return list(self.history)
+    
+    async def get_full_history_async(self) -> List[ChatEntry]:
+        """Get all chat interactions as a list asynchronously"""
+        return await asyncio.to_thread(list, self.history)
     
     def __len__(self) -> int:
         """Return the number of interactions in history"""

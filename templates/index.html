@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Window</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+        
+        #chat-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgb(0, 0, 128);
+            color: white;
+            border: none;
+            padding: 16px 24px;
+            border-radius: 50%;
+            font-size: 32px;
+            cursor: pointer;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+        
+        #chat-container {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            max-width: 80%;
+            min-width: 300px;
+            min-height: 400px;
+            max-height: 90%;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #ccc;
+            display: none;
+            flex-direction: column;
+            z-index: 1001;
+            resize: both;
+            overflow: hidden;
+        }
+    
+        
+        #chat-header {
+            background-color: rgb(0, 0, 128);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            position: relative;
+            cursor: move;
+        }
+        
+        #close-button {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+            line-height: 1;
+        }
+        
+        #messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            min-height: 200px;
+            border-bottom: 1px solid #ccc;
+        }
+        
+        .message { margin: 8px 0; padding: 8px; }
+        .user { 
+            text-align: right; 
+            color: rgb(0, 0, 128);
+            background-color: #f0f0ff;
+            border-radius: 15px 15px 0 15px;
+            padding: 10px 15px;
+            margin-left: 20%;
+        }
+        
+        .bot { 
+            text-align: left; 
+            color: #6c757d;
+            background-color: #f0fff0;
+            border-radius: 15px 15px 15px 0;
+            padding: 10px 15px;
+            margin-right: 20%;
+            white-space: pre-wrap;
+        }
+        
+        /* Formatting for bot messages */
+        .bot a {
+            color: #0066cc;
+            text-decoration: underline;
+        }
+        
+        .bot code {
+            background-color: #f8f8f8;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+            border: 1px solid #e1e1e8;
+        }
+        
+        .bot pre {
+            background-color: #f8f8f8;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            border: 1px solid #e1e1e8;
+        }
+        
+        .bot ul, .bot ol {
+            text-align: left;
+            padding-left: 30px;
+        }
+        
+        .waiting {
+            text-align: left;
+            color: #888;
+            font-style: italic;
+            padding: 10px 15px;
+        }
+        
+        .typing-indicator {
+            display: inline-block;
+        }
+        
+        .typing-indicator span {
+            height: 8px;
+            width: 8px;
+            background-color: #888;
+            display: inline-block;
+            border-radius: 50%;
+            margin: 0 2px;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+        
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes typing {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+            100% { transform: translateY(0); }
+        }
+        
+        #chat-input {
+            display: flex;
+            padding: 15px;
+            border-top: 1px solid #ccc;
+        }
+        
+        #message-input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 20px;
+        }
+        
+        #send-button {
+            background-color: rgb(0, 0, 128);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            margin-left: 10px;
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        #send-button:hover {
+            background-color: rgb(0, 0, 180);
+        }
+    </style>
+</head>
+<body>
+    <button id="chat-button">💬</button>
+    
+    <div id="chat-container">
+        <div id="chat-header">
+            Sales assistant
+            <button id="close-button">✕</button>
+        </div>
+        <div id="messages"></div>
+        <div id="chat-input">
+            <input type="text" id="message-input" placeholder="Type a message..." />
+            <button id="send-button">Send</button>
+        </div>
+    </div>
+    
+    <script>
+        const chatButton = document.getElementById("chat-button");
+        const chatContainer = document.getElementById("chat-container");
+        const closeButton = document.getElementById("close-button");
+        const chatHeader = document.getElementById("chat-header");
+        
+        // Initial message to display when chat opens
+        const initialMessage = "Hello, I am Ludek Kvapil sales assistant. I can answer you questions about Luděk work, experiences and skills.";
+        
+        // Functions to open and close chat
+        function openChat() {
+            chatContainer.style.display = "flex";
+            chatButton.style.display = "none";
+            
+            // Display initial message if there are no messages yet
+            const messagesDiv = document.getElementById("messages");
+            if (messagesDiv.childElementCount === 0) {
+                displayMessage(initialMessage, "bot");
+            }
+        }
+        
+        function closeChat() {
+            chatContainer.style.display = "none";
+            chatButton.style.display = "block";
+        }
+        
+        chatButton.addEventListener("click", openChat);
+        closeButton.addEventListener("click", closeChat);
+
+        // Make the container draggable
+        let isDragging = false;
+        let dragOffsetX, dragOffsetY;
+
+        chatHeader.addEventListener("mousedown", function(e) {
+            isDragging = true;
+            dragOffsetX = e.clientX - chatContainer.getBoundingClientRect().left;
+            dragOffsetY = e.clientY - chatContainer.getBoundingClientRect().top;
+        });
+
+        document.addEventListener("mousemove", function(e) {
+            if (isDragging) {
+                const left = e.clientX - dragOffsetX;
+                const top = e.clientY - dragOffsetY;
+                
+                // Keep container within viewport bounds
+                const maxX = window.innerWidth - chatContainer.offsetWidth;
+                const maxY = window.innerHeight - chatContainer.offsetHeight;
+                
+                chatContainer.style.left = Math.max(0, Math.min(left, maxX)) + "px";
+                chatContainer.style.top = Math.max(0, Math.min(top, maxY)) + "px";
+                
+                // When the container is dragged, we need to switch from bottom/right positioning
+                // to top/left positioning
+                chatContainer.style.bottom = "auto";
+                chatContainer.style.right = "auto";
+            }
+        });
+
+        document.addEventListener("mouseup", function() {
+            isDragging = false;
+        });
+        
+        // Add simple markdown-like formatting conversion
+        function formatBotMessage(text) {
+            // Handle URLs
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            text = text.replace(urlRegex, '<a href="$1" target="_blank">$1</a>');
+            
+            // Handle code blocks with ```
+            text = text.replace(/```([\s\S]*?)```/g, '<pre>$1</pre>');
+            
+            // Handle inline code with `
+            text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+            
+            // Handle bold with ** or __
+            text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+            text = text.replace(/__([^_]+)__/g, '<strong>$1</strong>');
+            
+            // Handle italic with * or _
+            text = text.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+            text = text.replace(/_([^_]+)_/g, '<em>$1</em>');
+            
+            // Handle line breaks
+            text = text.replace(/\n/g, '<br>');
+            
+            // Handle bullet lists
+            text = text.replace(/^\s*[-*]\s+(.+)$/gm, '<li>$1</li>');
+            text = text.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+            
+            // Handle numbered lists
+            text = text.replace(/^\s*(\d+)\.\s+(.+)$/gm, '<li>$2</li>');
+            text = text.replace(/(?<!<\/ul>)(<li>.*<\/li>)(?!<ul>)/s, '<ol>$1</ol>');
+            
+            return text;
+        }
+
+        // Send message functionality
+        document.getElementById("send-button").addEventListener("click", sendMessage);
+        document.getElementById("message-input").addEventListener("keypress", function(e) {
+            if (e.key === "Enter") {
+                sendMessage();
+            }
+        });
+        
+        let waitingMessageId = null;
+        
+        async function sendMessage() {
+            let input = document.getElementById("message-input");
+            let text = input.value.trim();
+            if (!text) return;
+
+            displayMessage(text, "user");
+            input.value = "";
+            
+            // Auto focus input after sending
+            input.focus();
+            
+            // Show waiting message
+            waitingMessageId = displayWaitingIndicator();
+
+            try {
+                let response = await fetch("http://127.0.0.1:5000/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ messages: [{ role: "user", content: text }] })
+                });
+
+                let data = await response.json();
+                
+                // Remove waiting message
+                removeWaitingIndicator();
+                
+                let botMessage = data.messages.find(msg => msg.role === "assistant").content;
+                displayMessage(botMessage || "No response", "bot");
+            } catch (error) {
+                // Remove waiting message
+                removeWaitingIndicator();
+                displayMessage("Error: Could not connect", "bot");
+            }
+        }
+
+        function displayMessage(text, sender) {
+            let messagesDiv = document.getElementById("messages");
+            let messageElement = document.createElement("div");
+            messageElement.classList.add("message", sender);
+            
+            if (sender === "bot") {
+                // Apply formatting to bot messages
+                messageElement.innerHTML = formatBotMessage(text);
+            } else {
+                messageElement.textContent = text;
+            }
+            
+            messagesDiv.appendChild(messageElement);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
+        function displayWaitingIndicator() {
+            let messagesDiv = document.getElementById("messages");
+            let messageElement = document.createElement("div");
+            messageElement.classList.add("message", "waiting");
+            messageElement.id = "waiting-message";
+            
+            let textSpan = document.createElement("span");
+            textSpan.textContent = "Waiting for AI response ";
+            
+            let indicatorSpan = document.createElement("span");
+            indicatorSpan.classList.add("typing-indicator");
+            
+            for (let i = 0; i < 3; i++) {
+                let dot = document.createElement("span");
+                indicatorSpan.appendChild(dot);
+            }
+            
+            messageElement.appendChild(textSpan);
+            messageElement.appendChild(indicatorSpan);
+            
+            messagesDiv.appendChild(messageElement);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            
+            return messageElement.id;
+        }
+        
+        function removeWaitingIndicator() {
+            let waitingMessage = document.getElementById("waiting-message");
+            if (waitingMessage) {
+                waitingMessage.remove();
+            }
+        }
+    </script>
+</body>
+</html>

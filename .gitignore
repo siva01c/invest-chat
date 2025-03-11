@@ -1,7 +1,22 @@
+# Ignore all files in the database and datasources directories except .gitkeep
 database/*
 !database/.gitkeep
 datasources/*
 !datasources/.gitkeep
+
+# Ignore environment variables file
 .env
-.vscode/*
-src/__pycache__/*
+
+# Ignore VSCode settings
+.vscode/
+
+# Ignore Python cache files
+src/__pycache__/
+__pycache__/
+agent/__pycache__/
+
+# Ignore ChromaDB files
+chromadb/
+
+# Ignore history files
+.history/
