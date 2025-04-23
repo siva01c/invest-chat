@@ -194,14 +194,21 @@ class AIService:
         question = user_text.strip()
 
         user_request = await self.handle_user_request(user_text)
-        if user_request["agent"]:
-            return user_request["message"]
+        
+    
+        
+        contexts = user_request.get("contexts", [])
+        if user_request.get("agent", []):
+            return user_request.get("message", [])
         
         # Get similar texts - ensure we await the async call
-        similar_texts = await store.search_similar_text(question)
+        if len(contexts) > 0:
+            knowledge_base = ' ' . join(contexts)
+        else:
+            similar_texts = await store.search_similar_text(question)
+            # Prepare prompts and messages
+            knowledge_base = self._prepare_knowledge_base(similar_texts)
         
-        # Prepare prompts and messages
-        knowledge_base = self._prepare_knowledge_base(similar_texts)
         system_prompt = self._create_system_prompt(knowledge_base)
         messages = self._prepare_messages(system_prompt, question, knowledge_base)
         
@@ -250,9 +257,10 @@ class AIService:
         9. "calendar" - Input related to scheduling, availability, time slots, appointments, or calendar management.
         10. "summary": The query is asking for a summary, all posts, or full text analysis, or a personality analysis.
         11. "post": The query is asking for a post, what he wrote, what he think, LinkedIn, or social media content
-        12. "company" - Input related to companies, organizations, or business entities.
-        13. "services" - Input related to services, offerings, or products provided by a company or individual.
-        14."common_knowledge" - Not related to Ludek, Luděk, Kvapil, or he. Input related to widely known facts, general information, current events, or encyclopedic knowledge. 
+        12. "skills" - Input related to abilities, competencies, expertise, or qualifications in a specific field.
+        13. "company" - Input related to companies, organizations, or business entities.
+        14. "services" - Input related to services, offerings, or products provided by a company or individual.
+        15."common_knowledge" - Not related to Ludek, Luděk, Kvapil, or he. Input related to widely known facts, general information, current events, or encyclopedic knowledge. 
         
         For each user message, respond with only the category name that best matches the input. Select exactly one category. If the input could fit multiple categories, choose the most prominent or central theme. If the input doesn't clearly match any category, select the closest possible match. 
         Respond with just the category name, without explanations or additional text.
@@ -273,16 +281,12 @@ class AIService:
 
             prompt_category = response.choices[0].message.content.lower()
             print(f"Prompt category: {prompt_category}")
-            
+            contexts = []
             # Check if the response classifies it as a clear history request
             # Handle different prompt categories
-            if prompt_category == "common_knowledge":
-                return {"agent": True, "message": "I'm specifically designed to answer questions about Luděk Kvapil, his work, life, and the technologies he uses. This topic appears to be outside that scope. Feel free to ask me about Luděk's projects, career, education, or tech stack instead!"}
-            elif prompt_category == "code":
-                return {"agent": True, "message": "While Luděk Kvapil is passionate about technology, I'm not designed to write or review code. I'd be happy to tell you about the programming languages and technologies Luděk works with instead!"}
-            elif prompt_category == "summary":
+            if prompt_category == "summary":
                 # Convert JSON data to list of strings for the summary case
-                contexts = []
+                
                 for post_id, post_data in self.data.items():
                     document_parts = [
                         f"User: {post_data.get('user', '')}",
@@ -290,13 +294,17 @@ class AIService:
                         f"Metadata: {post_data.get('metadata', '')}"
                         ]
                     contexts.append('\n\n'.join(document_parts))
+            elif prompt_category == "common_knowledge":
+                return {"agent": True, "message": "I'm specifically designed to answer questions about Luděk Kvapil, his work, life, and the technologies he uses. This topic appears to be outside that scope. Feel free to ask me about Luděk's projects, career, education, or tech stack instead!"}
+            elif prompt_category == "code":
+                return {"agent": True, "message": "While Luděk Kvapil is passionate about technology, I'm not designed to write or review code. I'd be happy to tell you about the programming languages and technologies Luděk works with instead!"}
             elif prompt_category == "clear_chat":
                 self.chat_history.clear_history()
-                return {"agent": True, "message": "Conversation history has been cleared. What would you like to know about Luděk Kvapil?"}
+                return {"agent": True, "message": "Conversation history has been cleared. What would you like to know about Luděk?"}
  
             
             # Default response if no match
-            return {"agent": False, "message": user_text}
+            return {"agent": False, "message": user_text, "contexts": contexts}
 
         except Exception as e:
             print(f"Error handling user request: {str(e)}")
