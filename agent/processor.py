@@ -1,18 +1,10 @@
 from abc import ABC, abstractmethod
-from src.vector_store import VectorStore, Record
+from services.vector_store import VectorStore, Record
 import json
 
 class DataProcessor(ABC):
     @abstractmethod
-    def _load_data(self, file_path):
-        pass
-
-    @abstractmethod
-    async def _prepare_data(self):
-        pass
-
-    @abstractmethod
-    async def store_data(self):
+    async def process_data(self):
         pass
 
 
@@ -34,9 +26,16 @@ class JsonProcessor(DataProcessor):
         """Generic process method to be overridden"""
         raise NotImplementedError("Subclasses must implement process_data")
     
-    async def store_data(self):
-        """Store processed data"""
-        raise NotImplementedError("Subclasses must implement store_data")
+    async def process_data(self, json_path: str):
+        store = VectorStore()
+        records = await self._prepare_data(json_path)
+        try:
+            result = await store.store_embeddings(records)
+            print(f"Result: {result}")
+        except Exception as e:
+            print(f"Error creating embeddings: {str(e)}")
+               
+        return {"message": "Data stored"}
 
 class KnowledgeJsonProcessor(JsonProcessor):
     """Specialized processor for knowledge base JSON files"""
@@ -74,25 +73,43 @@ class KnowledgeJsonProcessor(JsonProcessor):
             records.append(record)
 
         return records
-    
-    async def store_data(self, json_path: str):
-        store = VectorStore()
-        records = await self._prepare_data("datasources/knowledge_base.json")
-        try:
-            result = await store.store_embeddings(records)
-            print(f"Data stored")
-        except Exception as e:
-            print(f"Error creating embeddings: {str(e)}")
-               
-        return {"message": "Data stored"}
+
+
+class LinkedinJsonProcessor(JsonProcessor):
+    """Specialized processor for knowledge base JSON files"""
+    async def _prepare_data(self, json_path: str):
+        data = self._load_data(json_path)
+        if not data:
+            return []
+
+        records = []
+        # Sort data items by timestamp/id to ensure consistent enumeration
+        sorted_topics = sorted(data.items(), key=lambda x: x[0])
+        
+        for idx, (post_id, topic) in enumerate(sorted_topics, 1):
+            record = Record()
+            document_parts = [
+                f"Post #{idx}:",
+                f"Status: {topic.get('text', '')}",
+                f"Description: LinkedIn status by {topic.get('user', '')}, {topic.get('metadata', '')}"
+            ]
+                           
+            document = '\n\n'.join(document_parts)
+            record.knowledge.append(document) 
+            
+            record.metadata.append({
+                "source": json_path,
+                "index": idx,
+                "post_id": post_id,
+                "title": f"LinkedIn post #{idx}: {topic.get('user', '')}, {topic.get('metadata', '')}",
+                "type": "linkedin"
+            })
+            record.id = f"linkedin_post_{idx}"
+            records.append(record)
+
+        return records
 
 
 class PDFProcessor(DataProcessor):
-    def _load_data(self, file_path):
-        pass
-    
     async def process_data(self):
-        pass
-
-    async def store_data(self):
         pass

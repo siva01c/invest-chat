@@ -1,9 +1,7 @@
 from typing import List, Optional, Dict, Any
-import torch
 import chromadb
 from chromadb.config import Settings
 from chromadb.utils import embedding_functions
-from sentence_transformers import SentenceTransformer
 from openai import AsyncOpenAI 
 from dotenv import load_dotenv
 import os
