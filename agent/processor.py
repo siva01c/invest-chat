@@ -7,7 +7,6 @@ class DataProcessor(ABC):
     async def process_data(self):
         pass
 
-
 class JsonProcessor(DataProcessor):
     """Base class for JSON processing"""
     def _load_data(self, json_path: str):
@@ -73,7 +72,6 @@ class KnowledgeJsonProcessor(JsonProcessor):
             records.append(record)
 
         return records
-
 
 class LinkedinJsonProcessor(JsonProcessor):
     """Specialized processor for knowledge base JSON files"""

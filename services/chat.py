@@ -6,6 +6,8 @@ from dotenv import load_dotenv
 from services.vector_store import VectorStore
 from services.chat_history import ChatHistory
 import json
+from agent.simple_message_forwarder import send_simple_message 
+from services.completions import ChatCompletion
 
 # Create vector store as a global variable - but initialize it later
 store = None
@@ -52,7 +54,6 @@ class AIService:
         self.temperature = temperature
         self.context_window = context_window
         self._setup_environment()
-        self.client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         self.chat_history = ChatHistory(max_history=max_history)
         self.data = load_json_data(json_path=json_path)
         
@@ -121,6 +122,9 @@ class AIService:
          - Respond in the same language as the user's query
          - Use Markdown formatting for better readability
 
+         ## Contact Information:
+         Email: info@ludekkvapil.cz
+
          ## Knowledge Base:
          {knowledge_base}
         """
@@ -167,15 +171,15 @@ class AIService:
             AI-generated response or error message
         """
         try:
-            response = await self.client.chat.completions.create(
+            chat = ChatCompletion(
                 model=self.model_name,
                 messages=messages,
                 temperature=self.temperature
             )
+            # Use the async client to classify the request type
+            response = await chat.get_response()
             
-            if response.choices and response.choices[0].message:
-                return response.choices[0].message.content
-            raise ValueError("No response generated")
+            return response
             
         except Exception as e:
             return f"AI generation failed: {str(e)}"
@@ -194,9 +198,7 @@ class AIService:
         question = user_text.strip()
 
         user_request = await self.handle_user_request(user_text)
-        
-    
-        
+                
         contexts = user_request.get("contexts", [])
         if user_request.get("agent", []):
             return user_request.get("message", [])
@@ -253,14 +255,24 @@ class AIService:
         5. "code" - Input containing actual code snippets, programming functions, algorithms, or development instructions.
         6. "clear_chat" - Input requesting to reset, clear, or start a new conversation.
         7. "education" - Input related to learning, courses, training, academic institutions, study materials, or educational concepts.
-        8. "contact" - Input containing phone numbers, email addresses, physical addresses, or other means of reaching someone.
-        9. "calendar" - Input related to scheduling, availability, time slots, appointments, or calendar management.
-        10. "summary": The query is asking for a summary, all posts, or full text analysis, or a personality analysis.
-        11. "post": The query is asking for a post, what he wrote, what he think, LinkedIn, or social media content
-        12. "skills" - Input related to abilities, competencies, expertise, or qualifications in a specific field.
-        13. "company" - Input related to companies, organizations, or business entities.
-        14. "services" - Input related to services, offerings, or products provided by a company or individual.
-        15."common_knowledge" - Not related to Ludek, Luděk, Kvapil, or he. Input related to widely known facts, general information, current events, or encyclopedic knowledge. 
+        8. "leave_message" - Input where user wants to leave a message for Luděk, contact him, send him a note, or any form of communication.
+        9. "provide_contact" - Input providing contact information like email addresses, phone numbers, or other contact details after being asked.
+        10. "contact" - Input containing phone numbers, email addresses, physical addresses, or other means of reaching someone.
+        11. "calendar" - Input related to scheduling, availability, time slots, appointments, or calendar management.
+        12. "summary": The query is asking for a summary, all posts, or full text analysis, or a personality analysis.
+        13. "post": The query is asking for a post, what he wrote, what he think, LinkedIn, or social media content
+        14. "skills" - Input related to abilities, competencies, expertise, or qualifications in a specific field.
+        15. "company" - Input related to companies, organizations, or business entities.
+        16. "services" - Input related to services, offerings, or products provided by a company or individual.
+        17. "drupal" - Input related to Drupal, its features, modules, or any specific queries about the platform.
+        18. "cybersecurity" - Input related to cybersecurity, security measures, vulnerabilities, or protective technologies.
+        19. "aws" - Input related to Amazon Web Services, its features, services, or any specific queries about the platform.
+        20. "devops" - Input related to DevOps practices, tools, methodologies, or any specific queries about the field.
+        21. "ai" - Input related to artificial intelligence, machine learning, or any specific queries about the field.
+        22. "llm" - Input related to large language models, their applications, or any specific queries about the field.
+        23. "rag" - Input related to retrieval-augmented generation, its applications, or any specific queries about the field.
+        24. "owasp" - Input related to OWASP, its guidelines, vulnerabilities, or any specific queries about the field.
+        25. "common_knowledge" - Not related to Ludek, Luděk, Kvapil, or he. Input related to widely known facts, general information, current events, or encyclopedic knowledge. 
         
         For each user message, respond with only the category name that best matches the input. Select exactly one category. If the input could fit multiple categories, choose the most prominent or central theme. If the input doesn't clearly match any category, select the closest possible match. 
         Respond with just the category name, without explanations or additional text.
@@ -273,20 +285,18 @@ class AIService:
         ]
         
         try:
-            response = await self.client.chat.completions.create(
-                model="gpt-4o-mini",
+            chat = ChatCompletion(
                 messages=messages,
                 temperature=0
             )
-
-            prompt_category = response.choices[0].message.content.lower()
+            # Use the async client to classify the request type
+            prompt_category = await chat.get_response(lower=True)
             print(f"Prompt category: {prompt_category}")
             contexts = []
             # Check if the response classifies it as a clear history request
             # Handle different prompt categories
             if prompt_category == "summary":
-                # Convert JSON data to list of strings for the summary case
-                
+                # Convert JSON data to list of strings for the summary case               
                 for post_id, post_data in self.data.items():
                     document_parts = [
                         f"User: {post_data.get('user', '')}",
@@ -294,15 +304,35 @@ class AIService:
                         f"Metadata: {post_data.get('metadata', '')}"
                         ]
                     contexts.append('\n\n'.join(document_parts))
+            
+            elif prompt_category == "leave_message" or prompt_category == "provide_contact":
+                # Simple message forwarding - send user's message directly to Luděk
+                try:
+                    chat_history = self.chat_history.get_full_history()
+                    result = send_simple_message(
+                        user_message=user_text,
+                        chat_history=chat_history,
+                        user_context={"timestamp": "now", "source": "chat"}
+                    )
+                    self.chat_history.add_interaction(user_text, result)
+                    return {"agent": True, "message": result, "contexts": contexts}
+                except Exception as e:
+                    error_msg = "I'm sorry, there was an issue forwarding your message. Please try again later."
+                    self.chat_history.add_interaction(user_text, error_msg)
+                    return {"agent": True, "message": error_msg, "contexts": contexts}
+            
             elif prompt_category == "common_knowledge":
-                return {"agent": True, "message": "I'm specifically designed to answer questions about Luděk Kvapil, his work, life, and the technologies he uses. This topic appears to be outside that scope. Feel free to ask me about Luděk's projects, career, education, or tech stack instead!"}
+                self.chat_history.add_interaction(user_text, 'COMMON KNOWLEDGE')
+                return {"agent": True, "message": "I'm specifically designed to answer questions about Luděk Kvapil, his work, life, and the technologies he uses. This topic appears to be outside that scope. Feel free to ask me about Luděk's projects, career, education, or tech stack instead!"}       
+     
             elif prompt_category == "code":
+                self.chat_history.add_interaction(user_text, 'COdE')
                 return {"agent": True, "message": "While Luděk Kvapil is passionate about technology, I'm not designed to write or review code. I'd be happy to tell you about the programming languages and technologies Luděk works with instead!"}
+            
             elif prompt_category == "clear_chat":
                 self.chat_history.clear_history()
                 return {"agent": True, "message": "Conversation history has been cleared. What would you like to know about Luděk?"}
  
-            
             # Default response if no match
             return {"agent": False, "message": user_text, "contexts": contexts}
 
