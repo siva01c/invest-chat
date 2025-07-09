@@ -1,0 +1,11 @@
+# Core dependencies for sales-assistant
+fastapi>=0.104.1
+uvicorn>=0.24.0
+openai==1.59.4
+python-dotenv==1.0.0
+chromadb==0.5.23
+pydantic>=2.0.0
+python-multipart>=0.0.6
+jinja2>=3.1.2
+aiofiles>=23.2.1
+flask==3.0.3

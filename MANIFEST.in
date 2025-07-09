@@ -1,0 +1,44 @@
+# Include documentation files
+include README.md
+include CHANGELOG.md
+include LICENSE
+include .env.example
+
+# Include configuration files
+include pyproject.toml
+include pytest.ini
+recursive-include requirements *.txt
+
+# Include package data
+recursive-include src/sales_assistant/prompts *.md
+recursive-include src/sales_assistant/datasources *.json
+recursive-include src/sales_assistant/static *
+recursive-include src/sales_assistant/templates *
+recursive-include src/sales_assistant/config *
+
+# Include test files
+recursive-include tests *.py
+recursive-include tests *.json
+recursive-include tests *.yaml
+recursive-include tests *.yml
+
+# Include documentation
+recursive-include docs *.md
+recursive-include docs *.rst
+recursive-include docs *.txt
+recursive-include docs *.png
+recursive-include docs *.jpg
+recursive-include docs *.svg
+
+# Exclude development files
+exclude .gitignore
+exclude Makefile
+exclude *.log
+exclude .env
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
+recursive-exclude * *.orig
+recursive-exclude * *.rej
+recursive-exclude * .DS_Store
+recursive-exclude chromadb *
+recursive-exclude logs *

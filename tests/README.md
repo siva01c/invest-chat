@@ -2,6 +2,63 @@
 
 This directory contains various test scripts for debugging and validating the sales assistant functionality.
 
+## Unit Tests
+
+### Running Unit Tests
+
+To run all unit tests:
+
+```bash
+# From project root
+python -m pytest tests/ -v
+
+# Or use the test runner
+python tests/run_tests.py
+
+# Run specific test file
+python -m pytest tests/test_simple_message_forwarder.py -v
+
+# Run with async support
+python -m pytest tests/ -v --asyncio-mode=auto
+```
+
+### Test Coverage
+
+The unit tests cover:
+
+- **SimpleMessageForwarder** (`test_simple_message_forwarder.py`):
+  - Email sending functionality
+  - Language detection (English/Czech)
+  - Contact info extraction
+  - Message validation and processing
+  - Localized responses
+
+- **AIService** (`test_chat.py`):
+  - Chat functionality
+  - User request handling
+  - Response generation
+  - Message classification
+  - Context management
+
+- **VectorStore** (`test_vector_store.py`):
+  - Embedding storage and retrieval
+  - Vector similarity search
+  - ChromaDB integration
+  - Async operations
+
+### Test Requirements
+
+Install test dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+Required packages:
+- `pytest==7.4.3`
+- `pytest-asyncio==0.21.1`
+- `python-dotenv==1.0.0`
+
 ## SMTP/Email Testing Scripts
 
 ### 1. `gigaserver_correct_test.py`

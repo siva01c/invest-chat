@@ -1,1 +1,0 @@
-nohup python3 api_server.py > logs/output.log 2>&1 &
