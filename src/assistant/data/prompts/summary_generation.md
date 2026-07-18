@@ -1,6 +1,6 @@
 # Chat Summary Generation Prompt
 
-Create a concise summary of this chat conversation in {language}. 
+Create a concise summary of this chat conversation in {language}.
 
 Focus on:
 - What the user is looking for or needs

@@ -7,14 +7,16 @@ include .env.example
 # Include configuration files
 include pyproject.toml
 include pytest.ini
-recursive-include requirements *.txt
+# Requirements now in pyproject.toml only
 
 # Include package data
-recursive-include src/sales_assistant/prompts *.md
-recursive-include src/sales_assistant/datasources *.json
-recursive-include src/sales_assistant/static *
-recursive-include src/sales_assistant/templates *
-recursive-include src/sales_assistant/config *
+recursive-include src/assistant/data/prompts *.md
+recursive-include src/assistant/data/datasources *.json *.jsonl
+recursive-include src/assistant/data/translations *.yml
+recursive-include src/assistant/data/vocabulary *.txt
+recursive-include src/assistant/data *.yml
+recursive-include static *
+recursive-include templates *
 
 # Include test files
 recursive-include tests *.py

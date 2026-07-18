@@ -1,0 +1,112 @@
+services:
+  assistant:
+    build: .
+    # Do not publish the container port to host when using nginx-proxy.
+    # The proxy will route traffic to the container on the exposed port over the Docker network.
+    expose:
+      - "8000"
+    environment:
+      - PYTHONPATH=/app/src
+      - REDIS_URL=redis://redis:6379/0
+      - CHROMADB_HOST=chromadb
+      - CHROMADB_PORT=8000
+      - VIRTUAL_HOST=dev.ludekkvapil.cz
+      - LETSENCRYPT_HOST=dev.ludekkvapil.cz
+      - LETSENCRYPT_EMAIL=info@ludekkvapil.cz
+      # The port your app listens on inside the container. Keep this in sync with your app/uvicorn config.
+      - VIRTUAL_PORT=8000
+      - VIRTUAL_PROTO=http
+      - VIRTUAL_NETWORK=nginx-proxy
+      - HTTPS_METHOD=noredirect
+    env_file:
+      - .env
+    volumes:
+      - ./logs:/app/logs
+      - ./src:/app/src
+      - ./tests:/app/tests
+    restart: unless-stopped
+    depends_on:
+      - redis
+      - chromadb
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - nginx-proxy
+
+  # teams-bot:
+  #   build: .
+  #    ports:
+  #     - "3978:3978"
+  #   environment:
+  #     - PYTHONPATH=/app/src
+  #     - REDIS_URL=redis://redis:6379/0
+  #     - CHROMADB_HOST=chromadb
+  #     - CHROMADB_PORT=8000
+  #     - TEAMS_BOT_HOST=0.0.0.0
+  #     - TEAMS_BOT_PORT=3978
+  #   env_file:
+  #     - .env
+  #   volumes:
+  #     - ./logs:/app/logs
+  #   restart: unless-stopped
+  #   depends_on:
+  #     - redis
+  #     - chromadb
+  #     - assistant
+  #   command: ["python", "-m", "assistant.teams_bot"]
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:3978/teams/health"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 40s
+  #   networks:
+  #     - nginx-proxy
+
+  redis:
+    image: redis:6-alpine
+    #ports:
+    #  - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - nginx-proxy
+  chromadb:
+    image: ghcr.io/chroma-core/chroma:latest
+    #ports:
+    # - "8000:8000"
+    volumes:
+      - chromadb_data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - PERSIST_DIRECTORY=/chroma/chroma
+      - ANONYMIZED_TELEMETRY=FALSE
+      - ALLOW_RESET=TRUE
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    networks:
+      - nginx-proxy
+
+volumes:
+  redis_data:
+  chromadb_data:
+
+networks:
+  nginx-proxy:
+    external: true

@@ -63,7 +63,7 @@ Required packages:
 
 ### 1. `gigaserver_correct_test.py`
 **Purpose**: Test SMTP connection with official Gigaserver settings
-**Usage**: 
+**Usage**:
 ```bash
 cd test
 python gigaserver_correct_test.py

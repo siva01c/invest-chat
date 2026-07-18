@@ -1,0 +1,202 @@
+greetings:
+  - hi
+  - hello
+  - hey
+  - what up
+  - what's up?
+  - good morning
+  - good afternoon
+  - good evening
+  - how's it going?
+  - hey there
+
+inappropriate_response: |
+  Luděk Kvapil is a technology professional specializing in:
+
+  🔧 **Drupal development and consulting**
+  🔒 **Cybersecurity and penetration testing**
+  🤖 **AI solutions and chatbots**
+  ☁️ **AWS cloud technologies**
+
+  For other services, I'd recommend specialized providers.
+
+response_messages:
+  greeting: "Hello! I'm here to help you."
+  common_knowledge: "I focus on technical consulting and services by Luděk Kvapil. I'm happy to help with questions about:\n\n🔧 **Web development** (Drupal, Hugo)\n🤖 **AI and automation** (chatbots, integrations)\n☁️ **DevOps and cloud** (AWS, Docker)\n🔒 **Cybersecurity** (OWASP, audits)\n\nDo you have a specific technical project or question?"
+  code: "Sorry, I can't help you with coding"
+  clear_chat: "Conversation cleared."
+  email_error: "I'm sorry, there was an issue forwarding your message. Please try again later."
+
+service_detail_questions:
+  # General services - website development, technical projects
+  services: "I would be happy to help you with your project. Can you describe more what your business problem is that you want to solve?"
+
+  # Drupal specific inquiries
+  drupal: "Drupal is my favorite content management system. What business problem does Drupal solve for you?"
+
+  # AI/GenAI development services
+  ai: "AI is cool. Can you tell me more about your project? What business problem do you want to solve with AI?"
+
+  llm: "What business problem do you want to solve using language models?"
+
+  rag: "RAG is a good choice for semantic search. What business problem do you want to solve with it?"
+
+  # DevOps and cloud services
+  aws: "AWS is powerful. Which business problem do you want to solve with it?"
+
+  devops: "DevOPS is the backbone of every project. What technologies do you use?"
+
+  # Security services
+  cybersecurity: "I love security. It is wall "
+
+  cybersecurity_urgent: "We understand the urgency! For immediate help I need to know: What type of security incident? Domain/URL? What technology/CMS are you using? And your contact details for quick communication."
+
+  # Job opportunities
+  job_opportunity: "Thank you for your interest! Could you tell me more about the position?"
+
+  team_leadership: "Interesting! Could you tell me more about the team and project?"
+
+  technical_architecture: "Could you more describe your project? What technologies, scalability, complexity, and specific challenges?"
+
+# Conversation Flow Phrases
+conversation_phrases:
+  # Phrases that indicate we are asking for details
+  ask_details_phrases:
+    - more details
+    - tell me more
+    - share more
+    - more about
+    - could you tell me more
+    - what type of website
+    - what type of ai
+    - more about your project
+    - what you need
+    - what technologies
+    - i'd be happy to help
+    - i specialize in
+    - could you describe
+    - what business problem
+    - business problem
+    - what problem do you want to solve
+
+  # Phrases for cybersecurity urgent requests
+  cybersecurity_urgent_phrases:
+    - domain/url
+    - technology/cms
+    - contact details
+    - security incident
+    - can help you fix this immediately
+
+  # Phrases for service contact requests
+  service_contact_phrases:
+    - contact information
+    - email or phone
+    - forward all details
+    - who will contact you
+
+# Summary Agent Configuration
+summary_agent:
+  # Project type detection keywords and their corresponding descriptions
+  project_types:
+    school: "school website"
+    ecommerce: "e-commerce"
+    chatbot: "chatbot"
+    ai: "AI solution"
+    restaurant: "restaurant website"
+    company: "company website"
+    blog: "blog"
+    portfolio: "portfolio"
+    shop: "online shop"
+    mobile: "mobile app"
+    api: "API integration"
+    integration: "system integration"
+
+  # Keywords for identifying project-related messages
+  project_keywords:
+    - website
+    - web
+    - chatbot
+    - ai
+    - school
+    - company
+    - e-shop
+    - shop
+    - app
+    - api
+    - integration
+    - automation
+    - support
+    - customer
+    - problem
+    - improve
+    - service
+    - solution
+    - project
+    - system
+
+  # Email addresses to exclude from contact extraction
+  excluded_emails:
+    - info@ludekkvapil.cz
+    - ludek@ludekkvapil.cz
+    - kvapilludek@gmail.com
+
+  # Business context indicators for message extraction
+  business_indicators:
+    - we want
+    - we need
+    - looking for
+    - we have problem
+    - business
+    - customer
+    - i want
+    - i would like
+    - we require
+    - we must
+    - solve
+    - improve
+
+  # Curiosity indicators - when user wants to learn about technology
+  curiosity_phrases:
+    - just curious
+    - i am curious
+    - curiosity
+    - interested to know
+    - want to learn
+    - interested in
+    - just wondering
+    - just asking
+    - tell me more
+    - what is
+    - how does
+    - explain
+
+# Summary Agent Templates
+summary_templates:
+  single_message: "Initial user message: {message}"
+  project_detected: "Customer interested in {project_type}."
+  general_inquiry: "Customer inquiring about web services."
+  key_requirements: " Key requirements: {requirements}"
+  contact_info: "\n\nContact: {contact}"
+
+email_config:
+  fallback_template: |
+    Hello Luděk,
+
+    A user has contacted you via the sales assistant:
+
+    {chat_summary}
+
+    Timestamp: {timestamp}
+    Contact: {contact_info}
+    Language: {language_name}
+
+    Best regards,
+    Your Sales Assistant Bot
+
+  text_snippets:
+    contact_info_prefix: "• User Contact: "
+    session_info_prefix: "• Session Info: "
+    conversation_note_multiple: "This is a summary of {count} chat interactions. The user confirmed sending this summary instead of the full conversation history."
+    conversation_note_single: "This was the first message in the conversation."
+    contact_warning: "\n⚠️  **NOTE:** User appears to want contact but didn't provide contact information.\n"
+    no_summary_available: "No summary available"

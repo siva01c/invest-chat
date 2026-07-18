@@ -1,273 +1,143 @@
-# Sales Assistant - RAG Application
+# Sales Assistant — Development & Deployment Manual
 
-A sophisticated sales assistant built with FastAPI, ChromaDB, and OpenAI that provides information about Luděk Kvapil's services and automatically forwards user messages via email.
+This README focuses on practical steps to run the project locally for development and to deploy it behind an nginx reverse-proxy (nginx-proxy + acme companion) for production.
 
-## Features
+TL;DR
+- For local development: use the provided `docker-compose.override.yml` (maps host ports and enables reload).
+- For production behind nginx-proxy: use the main `docker-compose.yml`, create the external `nginx-proxy` network, start the proxy + acme companion, then start services (they expose HTTP on container port 8000).
 
-- **RAG-based Q&A** - Answers questions about Luděk's expertise using vector search
-- **Smart Message Classification** - Intelligently categorizes user queries with 7 optimized categories
-- **Automatic Message Forwarding** - Users can leave messages that are automatically emailed to Luděk
-- **Conversation History** - Maintains context across chat interactions
-- **Multi-language Support** - Supports English and Czech with automatic detection
-- **Professional Email Integration** - Uses Gigaserver SMTP for reliable message delivery
+## Contents
+- Prerequisites
+- Local development (quick steps)
+- Production deployment with nginx-proxy + ACME
+- Ports, CORS and common pitfalls
+- Useful commands and troubleshooting
 
-## Architecture
+## Prerequisites
+- Docker and Docker Compose (v2) installed on the host
+- A domain name pointing to the host public IP for production (for ACME)
+- Optional: Conda or a Python 3.8+ environment for local package-level testing
 
-- **FastAPI** - Web framework and API endpoints
-- **ChromaDB** - Vector database for knowledge storage
-- **OpenAI GPT-4o-mini** - Language model for responses
-- **OpenAI text-embedding-ada-002** - Vector embeddings
-- **Gigaserver SMTP** - Email delivery service
-- **Modern Python Package** - Professional structure following best practices
+## Local development
+This is the recommended path for active development. It uses `docker-compose.override.yml` that maps container ports to your host so you can access services directly.
 
-## Quick Start
+1. Configure environment
 
-### 1. Environment Setup
 ```bash
-# Clone the repository
-git clone https://github.com/ludekkvapil/assistant.git
-cd assistant
-
-# Setup conda environment and dependencies
-source /home/siva01/miniconda3/etc/profile.d/conda.sh
-conda activate llms
-make conda-setup
-
-# Copy and configure environment variables
 cp .env.example .env
-
-# Edit .env with your credentials:
-OPENAI_API_KEY=your_openai_key
-EMAIL=your_email@domain.com
-EMAIL_PWD=your_email_password
-EMAIL_RECEIVER=info@ludekkvapil.cz
-SMTP_SERVER=mail.gigaserver.cz
-SMTP_PORT=465
+# Edit .env and set OPENAI_API_KEY, EMAIL, EMAIL_PWD, etc.
 ```
 
-### 2. Run the Application
-```bash
-# Activate conda environment
-conda activate llms
-
-# Start development server
-make dev
-
-# Or manually:
-PYTHONPATH=src uvicorn assistant.api_server:app --reload --host 0.0.0.0 --port 5000
-```
-
-### 3. Access the Application
-- **Web Interface**: http://localhost:5000
-- **API Documentation**: http://localhost:5000/docs (disabled in production)
-- **Health Check**: Available via API endpoints
-
-### 4. Test Installation
-```bash
-# Test basic functionality
-PYTHONPATH=src python test_runner.py
-
-# Run full test suite
-make test
-```
-
-## Usage
-
-### Chat Interface
-Send POST requests to `/` with DeepChat format:
-```json
-{
-  "messages": [
-    {
-      "text": "What services does Luděk offer?"
-    }
-  ]
-}
-```
-
-### Message Classification
-The system intelligently classifies user input into 7 categories:
-- **leave_message** - User wants to contact Luděk
-- **provide_contact** - User provides contact information
-- **summary** - User asks for summaries or personality analysis
-- **clear_chat** - User wants to reset conversation
-- **common_knowledge** - General questions not about Luděk
-- **code** - Code snippets or programming requests
-- **technical_question** - Questions about Luděk's technical expertise
-
-### Message Forwarding
-Users can leave messages by saying things like:
-- "Please tell Luděk I'm interested in his services"
-- "Can you forward this message to Luděk?"
-- "I'd like to discuss a Drupal project"
-
-These messages are automatically:
-1. **Classified** and processed appropriately
-2. **Formatted** with smart subject lines (💼 Project, 🔧 Drupal, 🤖 AI, 🔒 Security)
-3. **Sent** to email with full context and conversation history
-4. **Confirmed** to the user with localized responses
-
-## Installation
-
-### Development Installation
-```bash
-# Install in development mode with all dependencies
-pip install -e .[dev,test]
-
-# Or using conda environment
-conda activate llms
-make install-dev
-```
-
-### Production Installation
-```bash
-pip install assistant
-```
-
-## Project Structure
-
-```
-src/assistant/
-├── __init__.py
-├── api_server.py              # FastAPI application with main() entry point
-├── data/                      # Package data (bundled with package)
-│   ├── datasources/
-│   │   ├── knowledge_base.json    # Luděk's expertise and services
-│   │   └── posts.json             # LinkedIn posts and content
-│   └── prompts/
-│       ├── classification.md      # Classification prompts
-│       ├── summary_generation.md  # Summary generation prompts
-│       └── system_prompt.md       # System prompts
-├── agent/
-│   ├── agents.py              # Base agent interface
-│   ├── email_agent.py         # Email forwarding system with language detection
-│   ├── language_detection_agent.py  # Multi-language support
-│   └── processor.py           # Data processors for knowledge base
-├── services/
-│   ├── chat.py               # Main chat logic and classification
-│   ├── chat_history.py       # Conversation memory management
-│   ├── completions.py        # OpenAI API wrapper
-│   ├── jwt_service.py        # JWT authentication
-│   ├── prompt_loader.py      # Prompt management utilities
-│   └── vector_store.py       # ChromaDB interface
-└── consumers/
-    └── consumers.py          # External API consumers (Drupal, etc.)
-```
-
-## Testing
+2. Start services (override applied automatically)
 
 ```bash
-# Run basic functionality tests
-PYTHONPATH=src python test_runner.py
-
-# Run full test suite
-make test
-
-# Run specific test file
-PYTHONPATH=src python -m pytest tests/test_chat.py -v
-
-# Run tests with coverage
-make test-cov
+docker compose up --build
 ```
 
-## Deployment
+What you get locally
+- Assistant web app: http://localhost:5000 (override maps 5000 -> container 8000)
+- ChromaDB (host): http://localhost:8001 (override maps host 8001->container 8000)
+- Redis: localhost:6379
 
-### Local Development
+Notes
+- The override runs uvicorn with `--reload` so code changes reload automatically.
+- If you prefer to run the app locally as a Python package, you can also create a venv/conda env and run:
+
 ```bash
-make dev  # Start with auto-reload
-
-- make dev - Start development server
-- make ps - Show running servers
-- make kill - Stop all running servers
-
-lsof -ti:5000 | xargs kill -9 2>/dev/null || true
-
-
-### Production
-```bash
-make run  # Start production server
+python -m pip install -e .[dev,test]
+PYTHONPATH=src uvicorn assistant.api_server:app --reload --host 0.0.0.0 --port 8000
 ```
 
-### Docker Support
-The application includes Docker configurations and can be deployed with Nginx reverse proxy.
+## Production deployment (nginx-proxy + ACME companion)
+This project is wired to work with `nginx-proxy` (automated vhost generation) and the `acme-companion` for TLS. The main `docker-compose.yml` is designed to run behind that proxy.
 
-### Environment Variables
-Required environment variables:
+High-level steps
+1. Create the external proxy network (once on the host):
+
 ```bash
-# OpenAI Configuration
-OPENAI_API_KEY=your_openai_key
-
-# Email Configuration
-EMAIL=your_email@domain.com
-EMAIL_PWD=your_app_password
-EMAIL_RECEIVER=info@ludekkvapil.cz
-SMTP_SERVER=mail.gigaserver.cz
-SMTP_PORT=465
-
-# Optional: Drupal Integration
-DRUPAL_BASE_URL=http://drupal.ddev.site
-DRUPAL_USERNAME=api_user
-DRUPAL_PASSWORD=api_password
+docker network create nginx-proxy
 ```
 
-## Development
+2. Start the proxy and acme companion (example):
 
-### Code Quality
 ```bash
-make format      # Format code with black and isort
-make lint        # Run linting with flake8 and mypy
-make pre-commit  # Run all quality checks
+# from the host, not inside the project compose
+# ensure you have volumes for certs / conf mounted as in your proxy compose
+docker run -d --name nginx-proxy \
+	-p 80:80 -p 443:443 \
+	-v /var/run/docker.sock:/tmp/docker.sock:ro \
+	-v ./certs:/etc/nginx/certs \
+	-v ./vhost.d:/etc/nginx/vhost.d \
+	-v ./html:/usr/share/nginx/html \
+	nginxproxy/nginx-proxy:1.6-alpine
+
+docker run -d --name nginx-acme --volumes-from nginx-proxy \
+	-v /var/run/docker.sock:/var/run/docker.sock:ro \
+	-e NGINX_PROXY_CONTAINER=nginx-proxy \
+	-e DEFAULT_EMAIL=you@example.com \
+	nginxproxy/acme-companion:2.4
 ```
 
-### Package Management
-Built with modern Python packaging:
-- **pyproject.toml** - Single source of configuration
-- **src/ layout** - Professional package structure
-- **Entry points** - Proper console scripts
-- **Package data** - Bundled prompts and datasources
+3. Start the application stack (main compose). The assistant service in `docker-compose.yml` sets `VIRTUAL_HOST` and `VIRTUAL_PORT=8000` so the proxy will route requests for your domain to the assistant container.
 
-## Recent Improvements
+```bash
+docker compose up -d --build
+```
 
-✅ **Major Refactoring Completed:**
-- Eliminated dual packaging (removed setup.py)
-- Moved to professional src/ package structure
-- Simplified classification from 25 to 7 categories
-- Removed global variables and hardcoded credentials
-- Bundled data files within package
-- Added environment-based configuration
-- Enhanced error handling and logging
+4. Watch proxy logs for cert issuance and vhost creation.
 
-## Contributing
+Notes and cautions
+- Make sure you do NOT set `VIRTUAL_HOST` for internal-only services like ChromaDB or Redis — otherwise the proxy may expose them publicly.
+- Both the assistant and ChromaDB listen on container port 8000 independently; this is fine. The proxy routes by container, not by host port.
+- Ensure the `nginx-proxy` network exists and is external in the app compose so the proxy can reach services by Docker network name.
 
-1. Fork the repository
-2. Create a feature branch
-3. Make changes following the existing code style
-4. Run tests and quality checks: `make pre-commit`
-5. Submit a pull request
+## Ports, CORS and host configuration
+- Container internal ports:
+	- assistant: 8000 (uvicorn)
+	- chromadb: 8000 (internal to chromadb container)
+	- redis: 6379 (internal)
 
-## License
+- Host mapping when using override (local dev):
+	- assistant -> host:5000 (maps to container 8000)
+	- chromadb -> host:8001 (maps to container 8000)
+	- redis -> host:6379
 
-MIT License - see LICENSE file for details.
+- CORS: The application will include the `VIRTUAL_HOST` / `LETSENCRYPT_HOST` domain in allowed origins automatically when present. For local dev the override sets `VIRTUAL_HOST=localhost`.
 
-## Author
+## Troubleshooting
+- DNS / ACME failures: Ensure your domain resolves to the host public IP and ports 80/443 are reachable. ACME HTTP-01 requires port 80.
+- Proxy not routing: Check that the assistant container is on the `nginx-proxy` network and that the container has `VIRTUAL_HOST` and `VIRTUAL_PORT` env vars set.
+- Port collisions on host: If you see an error binding host port 8000, ensure you do not have both assistant and chromadb publishing the same host port. Use the override which maps chromadb to 8001.
+- Healthcheck failures: The compose healthchecks use `http://localhost:<container-port>/health` from inside the container. If health fails check the container logs.
 
-**Luděk Kvapil** - [info@ludekkvapil.cz](mailto:info@ludekkvapil.cz)
+## Useful commands
 
-- Website: [ludekkvapil.cz](https://ludekkvapil.cz)
-- GitHub: [ludekkvapil](https://github.com/ludekkvapil)
-- LinkedIn: [Luděk Kvapil](https://linkedin.com/in/ludekkvapil)
+```bash
+# Build & run in foreground with local override
+docker compose up --build
 
+# Run in background
+docker compose up -d --build
 
+# Show running containers and ports
+docker ps --format 'table {{.Names}}\t{{.Ports}}'
 
-## Deploy 
+# Create external network if needed
+docker network create nginx-proxy
 
-sftp -i ~/.ssh/api-server.pem ec2-user@18.197.124.128
+# Show logs for the proxy
+docker logs -f nginx-proxy
 
-ps aux | grep api_server.py
-sudo lsof -i :5000
+# Run tests locally via package
+python -m pip install -e .[dev,test]
+PYTHONPATH=src python -m pytest -q
+```
 
+## Further improvements (suggestions)
+- Add a simple `make dev` helper that runs `docker compose up --build` and opens logs.
+- Add a short `docs/DEPLOYMENT.md` with more details on renewing certs, or automating with CI/CD.
 
-nohup python3 api_server.py > logs/output.log 2>&1 &
+If you'd like I can add the `make` helper and a short `DEPLOYMENT.md` with example proxy and acme companion commands.
 
-
-nohup env PYTHONPATH=src python3 -m assistant.api_server > logs/nohup.out 2>&1 &
+---
+End of manual

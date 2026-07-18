@@ -1,0 +1,203 @@
+greetings:
+  - čau
+  - ahoj
+  - zdravím
+  - dobrý den
+  - dobrý večer
+  - nazdar
+  - čůs
+  - dobré ráno
+  - dobrou noc
+  - ahoh
+  - čauky
+
+inappropriate_response: |
+  Luděk Kvapil je technický odborník specializující se na:
+
+  🔧 **Webové stránky: vývoj a konzultace**
+  🤖 **AI řešení, automatizace a chatboti**
+  ☁️ **DevOPS - AWS, VPS, dockerizace**
+  🔒 **Kyberbezpečnost, zejména OWASP**
+
+  Pro ostatní služby bych doporučil specializované poskytovatele.
+
+response_messages:
+  greeting: "Ahoj! Jak ti můžu pomoci?"
+  common_knowledge: "Zaměřuji se na technické poradenství a služby Luďka Kvapila. Rádi pomohu s dotazy na:\n\n🔧 **Webový vývoj** (Drupal, Hugo)\n🤖 **AI a automatizace** (chatboti, integrace)\n☁️ **DevOps a cloud** (AWS, Docker)\n🔒 **Kyberbezpečnost** (OWASP, audity)\n\nMáte konkrétní technický projekt nebo otázku?"
+  code: "Omlouvám se, nemohu vám pomoci s kódováním"
+  clear_chat: "Konverzace vymazána."
+  email_error: "Omlouvám se, došlo k problému při předávání vaší zprávy. Zkuste to prosím později."
+
+service_detail_questions:
+  # General services - website development, technical projects
+  services: "Rád vám pomohu s vaším projektem. Můžete více popsat, co je váš bussiness problém, který chcete vyřešit?"
+
+  # Drupal specific inquiries
+  drupal: "Drupal je můj oblíbený redakční systém. Jaký business problém má pro vás Drupal vyřešit?"
+
+  # AI/GenAI development services
+  ai: "AI je cool. Můžete mi říct více o vašem projektu? Jaký business problém chcete pomocí AI vyřešit?"
+
+  llm: "Jaký business problém chcete vyřešit pomocí jazykových modelů?"
+
+  rag: "RAG je dobrá volba pro sématické vyhledávání. Jaký business problém s ním chcete vyřešit?"
+
+  # DevOps and cloud services
+  aws: "AWS je mocný nástroj. Jaký business problém s ním chcete řešit?"
+
+  devops: "DevOPS je páteří každého projektu. Jaké technologie používáte?"
+
+  # Security services
+  cybersecurity: "Perfektní! Zabývám se kybernetickou bezpečností. Potřebujete bezpečnostní audit, penetrační testování, zabezpečení aplikace, nebo OWASP compliance review?"
+
+  cybersecurity_urgent: "Chápeme naléhavost situace! Pro okamžitou pomoc potřebuji vědět: Jaký typ bezpečnostního incidentu? Doménu/URL? Jakou technologii/CMS používáte? A vaše kontaktní údaje pro rychlou komunikaci."
+
+  # Job opportunities
+  job_opportunity: "Děkuji za zájem! Můžete mi říct více o pozici?"
+
+  team_leadership: "Zajímavé! Můžete mi říct více o týmu a projektu?"
+
+  technical_architecture: "Můžete popsat váš projekt? Jaké jsou technologie, komplexita a výzvy?"
+
+# Conversation Flow Phrases
+conversation_phrases:
+  # Phrases that indicate we are asking for details
+  ask_details_phrases:
+    - více o tom
+    - více detailů
+    - říct více
+    - sdílet více
+    - můžete mi říct více
+    - jaký typ webu
+    - jaký typ ai řešení
+    - více o vašem projektu
+    - co potřebujete
+    - jaké technologie
+    - rád vám pomohu
+    - specializuji se na
+    - můžete popsat
+    - jaký business problém
+    - business problém
+    - jaký problém chcete vyřešit
+
+  # Phrases for cybersecurity urgent requests
+  cybersecurity_urgent_phrases:
+    - doménu/url
+    - technologie/cms
+    - kontaktní údaje
+    - bezpečnostní incident
+    - může okamžitě pomoci
+
+  # Phrases for service contact requests
+  service_contact_phrases:
+    - kontaktní údaje
+    - email nebo telefon
+    - předat všechny informace
+    - který vás bude kontaktovat
+
+# Summary Agent Configuration
+summary_agent:
+  # Project type detection keywords and their corresponding descriptions
+  project_types:
+    škola: "školní web"
+    e-shop: "e-shop"
+    chatbot: "chatbot"
+    ai: "AI aplikace"
+    hospoda: "web pro hospodu"
+    firma: "firemní web"
+    blog: "blog"
+    portfolio: "portfolio"
+    obchod: "e-shop"
+    app: "mobilní aplikace"
+    api: "API integrace"
+    integration: "integrace systémů"
+
+  # Keywords for identifying project-related messages
+  project_keywords:
+    - web
+    - stránky
+    - chatbot
+    - ai
+    - škola
+    - firma
+    - e-shop
+    - obchod
+    - aplikace
+    - api
+    - integrace
+    - automatizace
+    - podpora
+    - zákaznická
+    - problém
+    - zlepšit
+    - služba
+    - řešení
+    - projekt
+    - systém
+
+  # Email addresses to exclude from contact extraction
+  excluded_emails:
+    - info@ludekkvapil.cz
+    - ludek@ludekkvapil.cz
+    - kvapilludek@gmail.com
+
+  # Business context indicators for message extraction
+  business_indicators:
+    - chceme
+    - potřebujeme
+    - hledáme
+    - máme problém
+    - business
+    - zákazník
+    - zákaznická
+    - chci
+    - chtěl bych
+    - potrebujeme
+    - musíme
+    - vyřešit
+
+  # Curiosity indicators - when user wants to learn about technology
+  curiosity_phrases:
+    - jen mě to zajímá
+    - jsem zvědavý
+    - zajímá mě
+    - chtěl bych vědět
+    - rád bych se dozvěděl
+    - co je to
+    - jak funguje
+    - vysvětli mi
+    - řekni mi více
+    - jen se ptám
+    - jen tak
+    - ze zvědavosti
+
+# Summary Agent Templates
+summary_templates:
+  single_message: "První zpráva od uživatele: {message}"
+  project_detected: "Zákazník má zájem o {project_type}."
+  general_inquiry: "Zákazník se dotazuje na webové služby."
+  key_requirements: " Klíčové požadavky: {requirements}"
+  contact_info: "\n\nKontakt: {contact}"
+
+email_config:
+  fallback_template: |
+    Ahoj Luděku,
+
+    Uživatel tě kontaktoval přes prodejního asistenta:
+
+    {chat_summary}
+
+    Čas: {timestamp}
+    Kontakt: {contact_info}
+    Jazyk: {language_name}
+
+    S pozdravem,
+    Tvůj Sales Assistant Bot
+
+  text_snippets:
+    contact_info_prefix: "• Kontakt uživatele: "
+    session_info_prefix: "• Informace o relaci: "
+    conversation_note_multiple: "Toto je shrnutí {count} chatových interakcí. Uživatel potvrdil odeslání tohoto shrnutí místo úplné historie konverzace."
+    conversation_note_single: "Toto byla první zpráva v konverzaci."
+    contact_warning: "\n⚠️  **POZNÁMKA:** Zdá se, že uživatel chce kontakt, ale neposkytl kontaktní informace.\n"
+    no_summary_available: "Shrnutí není k dispozici"

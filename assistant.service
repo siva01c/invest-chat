@@ -1,0 +1,26 @@
+[Unit]
+Description=AI Sales Assistant Service
+After=network.target
+
+[Service]
+Type=simple
+User=ec2-user
+Group=ec2-user
+WorkingDirectory=/home/ec2-user/assistant
+Environment=PYTHONPATH=/home/ec2-user/assistant/src
+EnvironmentFile=/home/ec2-user/assistant/.env
+ExecStart=/usr/bin/python3 -m assistant.api_server
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=assistant
+
+# Security settings
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths=/home/ec2-user/assistant/logs /home/ec2-user/assistant/chromadb
+
+[Install]
+WantedBy=multi-user.target

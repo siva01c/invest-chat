@@ -1,62 +1,80 @@
-greetings:
-  english:
-    - hi
-    - hello
-    - hey
-    - good morning
-    - good afternoon
-    - good evening
-  czech:
-    - čau
-    - ahoj
-    - zdravím
-    - dobrý den
-    - dobrý večer
-    - nazdar
-    - čůs
-    - dobré ráno
-
-inappropriate_responses:
-  czech: |
-    Chápu, že se ptáte na různé služby, ale Luděk Kvapil je technický odborník specializující se na:
-
-    🔧 **Drupal vývoj a konzultace**
-    🔒 **Kyberbezpečnost a penetrační testování**  
-    🤖 **AI řešení a chatboty**
-    ☁️ **AWS cloudové technologie**
-
-    Pro ostatní služby bych doporučil specializované poskytovatele.
-    Mohu vám pomoct s dotazy ohledně Luďkových technických služeb?
-
-    📧 Kontakt: info@ludekkvapil.cz
-  english: |
-    I understand you're asking about various services, but Luděk Kvapil is a technology professional specializing in:
-
-    🔧 **Drupal development and consulting**
-    🔒 **Cybersecurity and penetration testing**
-    🤖 **AI solutions and chatbots**
-    ☁️ **AWS cloud technologies**
-
-    For other services, I'd recommend specialized providers.
-    Can I help you with questions about Luděk's technical services instead?
-
-    📧 Contact: info@ludekkvapil.cz
-
 conversation_categories:
   inappropriate:
-    keywords: [cooking, recipe, dinner, food, uvařit, vecer, večeří, večeří]
+    keywords:
+      [
+        "sex",
+        "drugs",
+        "porn",
+        "prono",
+        "crime",
+        "drogy",
+        "šukat",
+        "debil",
+        "fuck",
+        "idiot",
+      ]
     summary: "Inappropriate request (non-professional services)"
   cybersecurity_urgent:
-    keywords: [hacknutý, hacked, napadený, attacked, virus, malware, compromised, breached, fixne, fix, hacknutého]
+    keywords:
+      [
+        hacknutý,
+        hacked,
+        napadený,
+        attacked,
+        virus,
+        malware,
+        compromised,
+        breached,
+        fixne,
+        fix,
+        hacknutého,
+      ]
     summary: "URGENT: Security incident - website hacked/compromised"
   job_opportunity:
-    keywords: [job, position, employment, hiring, career, long-term, permanent, role, team lead, senior developer, tech lead, engineering manager, zaměstnání, pozice, práce, kariéra, dlouhodobě, tým, vedení]
-    summary: "Employment opportunity - senior technical role"
+    keywords:
+      [
+        job,
+        position,
+        employment,
+        hiring,
+        career,
+        long-term,
+        permanent,
+        role,
+        team lead,
+        senior developer,
+        tech lead,
+        engineering manager,
+        zaměstnání,
+        pozice,
+        práce,
+        kariéra,
+        tým,
+        collaboration,
+        hire,
+        work,
+        spolupráce,
+        práce,
+      ]
+    summary: "Employment opportunity"
   team_leadership:
-    keywords: [team, mentor, guide,  manage, coordinate, mentoring, koordinace, vedení]
+    keywords:
+      [team, mentor, guide, manage, coordinate, mentoring, koordinace, vedení]
     summary: "Mentoring discussion"
   technical_architecture:
-    keywords: [architecture, design, solution, strategy, planning, architektura, návrh, řešení, strategie, plánování]
+    keywords:
+      [
+        architecture,
+        design,
+        solution,
+        strategy,
+        planning,
+        architektura,
+        návrh,
+        řešení,
+        strategie,
+        plánování,
+      ]
     summary: "Technical architecture and solution design"
   drupal:
     keywords: [drupal, cms]
@@ -64,92 +82,86 @@ conversation_categories:
   hugo:
     keywords: [hugo, static site, statický web, static website]
     summary: "Hugo static website development"
-  wordpress:
-    keywords: [wordpress, wp]
-    summary: "WordPress development consultation"
   cybersecurity:
-    keywords: [security, penetration, vulnerability, cybersecurity, bezpečnost]
+    keywords:
+      [
+        security,
+        OWASP,
+        penetration,
+        vulnerability,
+        cybersecurity,
+        bezpečnost,
+        hacking,
+        hack,
+        hacker,
+      ]
     summary: "Cybersecurity consultation"
   ai:
-    keywords: [ai, chatbot, llm, artificial intelligence, integrovat ai, automatizaci, automatizace, procesy, procesů, umělá inteligence]
+    keywords:
+      [
+        ai,
+        chatbot,
+        llm,
+        llms,
+        OpenAI,
+        Antropic,
+        Claude,
+        HuggingFace,
+        artificial intelligence,
+        genai,
+        integrovat ai,
+        automatizaci,
+        automatizace,
+        procesy,
+        procesů,
+        umělá inteligence,
+      ]
     summary: "AI integration and automation inquiry"
   automation:
-    keywords: [automatizaci, automatizace, procesy, procesů, automation, processes, workflow]
+    keywords:
+      [
+        automatizaci,
+        automatizace,
+        procesy,
+        procesů,
+        automation,
+        processes,
+        workflow,
+      ]
     summary: "Process automation and workflow optimization"
   aws:
-    keywords: [aws, cloud, serverless, lambda]
+    keywords:
+      [aws, cloud, serverless, lambda, EC2, ECS, KMS, secret manager, S3]
     summary: "AWS/Cloud architecture and DevOps"
   project:
-    keywords: [project, projektu, projekt, collaboration, hire, work, spolupráce, práce]
+    keywords: [project, projektu, projekt]
     summary: "Long-term project collaboration"
 
-response_messages:
-  greeting: "Welcome! How can I help you learn about Luděk's xperience and career background?"  # fallback
-  greeting_english: "Hello! I'm here to help you understand Luděk Kvapil's capabilities and technical expertise. Whether you're looking for a senior developer, tech lead, or someone to drive technical initiatives, I can share how Luděk's experience makes him an ideal long-term team member."
-  greeting_czech: "Ahoj! Jsem zde, abych vám pomohl pochopit Luďkovy vedoucí schopnosti a technické odbornosti. Ať už hledáte senior developera, tech leada, nebo někoho, kdo povede technické iniciativy, mohu vám říct, jak z Luďka dělají jeho zkušenosti ideálního dlouhodobého člena týmu."
-  common_knowledge: "I'm focused on showcasing Luděk Kvapil's professional qualifications and potential for employment opportunities. Feel free to ask about his technical experience, team collaboration skills, or career achievements!"
-  code: "While I don't write code, I can tell you about Luděk's extensive development experience and how he mentors teams, leads technical decisions, and drives code quality improvements!"
-  clear_chat: "Conversation cleared. What would you like to know about Luděk's capabilities and career experience?"
-  email_error: "I'm sorry, there was an issue forwarding your message. Please try again later."
-
-# Employment inquiry detail questions
-service_detail_questions:
-  job_opportunity:
-    english: "Excellent! Luděk is actively seeking long-term employment opportunities where he can lead technical initiatives and mentor teams. Could you tell me more about the role? For example: What's the team size? Are you looking for a senior developer, tech lead, or engineering manager? What technical challenges does your team face?"
-    czech: "Výborně! Luděk aktivně hledá dlouhodobé zaměstnanecké příležitosti, kde může vést technické iniciativy a mentorovat týmy. Můžete mi říct více o pozici? Například: Jaká je velikost týmu? Hledáte senior developera, tech leada, nebo engineering managera? Jakým technickým výzvám váš tým čelí?"
-  
-  team_leadership:
-    english: "Perfect! Luděk excels at leading development teams and driving technical excellence. What specific challenges does your team face? Are you looking for someone to mentor junior developers, improve code quality, or establish better development processes?"
-    czech: "Perfektní! Luděk vyniká ve vedení vývojářských týmů a prosazování technické dokonalosti. Jakým konkrétním vedoucím výzvám váš tým čelí? Hledáte někoho, kdo by mentoroval junior developery, zlepšil kvalitu kódu, nebo zavedl lepší vývojářské procesy?"
-  
-  drupal:
-    english: "Great! Luděk brings 13+ years of Drupal experience. Is this for a senior Drupal architect role, leading a Drupal team, or driving Drupal strategy? What's the scale of your Drupal operations and team size?"
-    czech: "Skvěle! Luděk přináší více než 13 let vedoucích zkušeností s Drupalem. Je to pro pozici senior Drupal architekta, vedení Drupal týmu, nebo řízení Drupal strategie? Jaký je rozsah vašich Drupal operací a velikost týmu?"
-  
-  cybersecurity_urgent:
-    english: "I understand this is an urgent security incident! Luděk can help you fix this immediately. To provide the best assistance, please share: 1) Your website domain/URL, 2) What technology/CMS is used (WordPress, Drupal, custom PHP, etc.), 3) **Your contact details (email/phone)** so he can reach you quickly."
-    czech: "Chápu, že se jedná o naléhavý bezpečnostní incident! Luděk vám může okamžitě pomoci. Pro nejlepší pomoc prosím sdílejte: 1) Doménu/URL vašeho webu, 2) Jaká technologie/CMS je použita (WordPress, Drupal, vlastní PHP, atd.), 3) **Vaše kontaktní údaje (email/telefon)**, aby vás mohl rychle kontaktovat."
-  
-  cybersecurity:
-    english: "I understand you need cybersecurity help. Luděk specializes in security audits, penetration testing, and fixing security issues. **Could you provide your contact details** so I can connect you with him directly? Or would you like me to send him a summary of your security needs?"
-    czech: "Chápu, že potřebujete pomoc s kyberbezpečností. Luděk se specializuje na bezpečnostní audity, penetrační testování a opravy bezpečnostních problémů. **Můžete mi poskytnout vaše kontaktní údaje**, abych vás s ním mohl spojit přímo? Nebo chcete, abych mu poslal shrnutí vašich bezpečnostních potřeb?"
-  
-  ai:
-    english: "AI solutions are exciting! To understand your needs better, could you tell me more? Are you looking to integrate chatbots, build custom AI applications, or implement RAG systems?"
-    czech: "AI řešení jsou vzrušující! Pro lepší pochopení vašich potřeb, můžete mi říct více? Hledáte integraci chatbotů, vývoj vlastních AI aplikací, nebo implementaci RAG systémů?"
-  
-  aws:
-    english: "AWS has many powerful services! To help you better, could you share more about your project? Are you looking for cloud migration, serverless applications, or infrastructure optimization?"
-    czech: "AWS má mnoho výkonných služeb! Pro lepší pomoc, můžete sdílet více o vašem projektu? Hledáte cloudovou migraci, serverless aplikace, nebo optimalizaci infrastruktury?"
-  
-  services:
-    english: "I'd love to help you find the right services! Could you tell me more about what you're looking for? What type of project or technical challenge do you need help with?"
-    czech: "Rád vám pomůžu najít správné služby! Můžete mi říct více o tom, co hledáte? Jaký typ projektu nebo technické výzvy potřebujete vyřešit?"
-
-# Category mappings for detailed classification
 category_actions:
   # Explicit message forwarding requests
   leave_message: "forward_message"
-  provide_contact: "forward_message" 
-  
+  provide_contact: "forward_message"
+
   # Employment and leadership inquiries - ask for details about role/team
   job_opportunity: "ask_details"
   team_leadership: "ask_details"
   technical_architecture: "ask_details"
-  
+
   # Urgent issues - ask for technical details first
   cybersecurity_urgent: "ask_details"
-  
-  # Technical expertise inquiries - ask for details about role/needs
+
+  # Service inquiries - ask for details about role/needs
   services: "ask_details"
-  drupal: "ask_details"
-  cybersecurity: "ask_details"
-  aws: "ask_details"
-  devops: "ask_details"
-  ai: "ask_details"
-  llm: "ask_details"
-  rag: "ask_details"
-  
+
+  # Technical expertise questions - provide technical answers
+  drupal: "technical_answer"
+  cybersecurity: "technical_answer"
+  aws: "technical_answer"
+  devops: "technical_answer"
+  ai: "technical_answer"
+  llm: "technical_answer"
+  rag: "technical_answer"
+
   # Technical questions - let AI answer
   technical_question: "technical_answer"
   person: "technical_answer"
@@ -158,15 +170,22 @@ category_actions:
   skills: "technical_answer"
   company: "technical_answer"
   help_request: "technical_answer"
-  
+  diy_request: "technical_answer"
+  curiosity_response: "technical_answer"
+
   # Special handling
   summary: "summary"
   post: "summary"
   clear_chat: "clear_chat"
+  show_history: "show_history"
   calendar: "forward_message"
   contact: "forward_message"
   service_details: "handle_detailed_request"
-  
+
+  # Business inquiries - provide helpful information
+  pricing: "technical_answer"
+  options: "technical_answer"
+
   # Agent responses
   common_knowledge: "agent_response"
   code: "agent_response"
@@ -175,26 +194,17 @@ category_actions:
   technology_description: "technical_answer"
   owasp: "technical_answer"
 
-# Email templates and text snippets
-email_config:
-  fallback_template: |
-    Hello Luděk,
-
-    A user has contacted you via the sales assistant:
-
-    {chat_summary}
-
-    Timestamp: {timestamp}
-    Contact: {contact_info}
-    Language: {language_name}
-
-    Best regards,
-    Your Sales Assistant Bot
-  
-  text_snippets:
-    contact_info_prefix: "• User Contact: "
-    session_info_prefix: "• Session Info: "
-    conversation_note_multiple: "This is a summary of {count} chat interactions. The user confirmed sending this summary instead of the full conversation history."
-    conversation_note_single: "This was the first message in the conversation."
-    contact_warning: "\n⚠️  **NOTE:** User appears to want contact but didn't provide contact information.\n"
-    no_summary_available: "No summary available"
+# Technical categories that enable conversation categorization history
+technical_categories_with_history:
+  - drupal
+  - ai
+  - llm
+  - rag
+  - aws
+  - devops
+  - cybersecurity
+  - cybersecurity_urgent
+  - technical_architecture
+  - automation
+  - hugo
+  - services

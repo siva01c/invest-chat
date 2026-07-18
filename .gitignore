@@ -142,7 +142,7 @@ config/cert
 .env.local
 .env.development
 
-# IDE 
+# IDE
 .history
 .claude
-.vscode
+.vscode.history/
