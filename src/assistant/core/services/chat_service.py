@@ -74,7 +74,7 @@ class AIService:
         # Retrieve RAG context
         contexts = await self.vector_store.retrieve_context(question, top_k=3)
         knowledge_base_text = (
-            "\n\n".join(contexts) if contexts else "Žádné specifické podrobnosti nenaalezeny."
+            "\n\n".join(contexts) if contexts else "Žádné specifické podrobnosti nenalezeny."
         )
 
         system_prompt = self._load_system_prompt(knowledge_base_text)

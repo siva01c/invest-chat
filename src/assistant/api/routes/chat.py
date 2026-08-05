@@ -1,20 +1,40 @@
 """Investment Chat API endpoints."""
 
 import json
+import uuid
 from typing import AsyncGenerator
-from fastapi import APIRouter, HTTPException, Request
+
+from fastapi import APIRouter, Cookie, HTTPException, Request, Response
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 from assistant.core.services.chat_service import AIService
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
-ai_service = AIService()
+
+# Per-session AIService registry — each browser session gets its own chat history.
+# Keys are session IDs (UUID strings set via a cookie).
+_session_registry: dict[str, AIService] = {}
+
+SESSION_COOKIE_NAME = "invest_chat_session"
+
+
+def _get_or_create_session(session_id: str | None) -> tuple[str, AIService]:
+    """Return (session_id, AIService) for the given session ID.
+
+    Creates a new session (and a new AIService with isolated history) when the
+    session_id is unknown or absent.
+    """
+    if session_id and session_id in _session_registry:
+        return session_id, _session_registry[session_id]
+
+    new_id = str(uuid.uuid4())
+    _session_registry[new_id] = AIService()
+    return new_id, _session_registry[new_id]
 
 
 class ChatRequest(BaseModel):
     message: str = Field(..., description="Dotaz uživatele")
-    messages: list = Field(default=[], description="Historie zpráv pro kompatibilitu UI")
 
 
 class ChatResponse(BaseModel):
@@ -24,18 +44,25 @@ class ChatResponse(BaseModel):
 
 @router.post("", response_class=JSONResponse)
 @router.post("/", response_class=JSONResponse)
-async def chat_endpoint(payload: ChatRequest):
-    """Synchronní chat endpoint pro generování odpovědí."""
-    user_msg = payload.message
-    if not user_msg and payload.messages:
-        # Extract last user message if using messages list format
-        for m in reversed(payload.messages):
-            if isinstance(m, dict) and m.get("role") == "user":
-                user_msg = m.get("content", "")
-                break
-
+async def chat_endpoint(
+    payload: ChatRequest,
+    response: Response,
+    invest_chat_session: str | None = Cookie(default=None, alias=SESSION_COOKIE_NAME),
+):
+    """Synchronní chat endpoint — každý uživatel má izolovanou historii."""
+    user_msg = payload.message.strip()
     if not user_msg:
         raise HTTPException(status_code=400, detail="Zprávu nelze odeslat prázdnou.")
+
+    session_id, ai_service = _get_or_create_session(invest_chat_session)
+    # Refresh / set the session cookie on every response.
+    response.set_cookie(
+        key=SESSION_COOKIE_NAME,
+        value=session_id,
+        httponly=True,
+        samesite="lax",
+        max_age=3600 * 24,  # 24 hours
+    )
 
     response_text = await ai_service.chat(user_msg)
     return {"response": response_text, "text": response_text}
@@ -43,18 +70,24 @@ async def chat_endpoint(payload: ChatRequest):
 
 @router.post("/stream")
 @router.get("/stream")
-async def chat_stream_endpoint(request: Request, message: str = ""):
-    """Streamovací endpoint pro Server-Sent Events (SSE)."""
-    user_msg = message
+async def chat_stream_endpoint(
+    request: Request,
+    message: str = "",
+    invest_chat_session: str | None = Cookie(default=None, alias=SESSION_COOKIE_NAME),
+):
+    """Streamovací endpoint pro Server-Sent Events (SSE) s per-session historií."""
+    user_msg = message.strip()
     if not user_msg and request.method == "POST":
         try:
             body = await request.json()
-            user_msg = body.get("message", "")
+            user_msg = body.get("message", "").strip()
         except Exception:
             pass
 
     if not user_msg:
         raise HTTPException(status_code=400, detail="Dotaz nesmí být prázdný.")
+
+    session_id, ai_service = _get_or_create_session(invest_chat_session)
 
     async def event_generator() -> AsyncGenerator[str, None]:
         async for token in ai_service.stream_chat(user_msg):
@@ -62,4 +95,21 @@ async def chat_stream_endpoint(request: Request, message: str = ""):
             yield f"data: {data}\n\n"
         yield "data: [DONE]\n\n"
 
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
+    streaming_response = StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "X-Accel-Buffering": "no",   # Prevents nginx from buffering SSE chunks
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+        },
+    )
+    # Set session cookie on SSE response as well.
+    streaming_response.set_cookie(
+        key=SESSION_COOKIE_NAME,
+        value=session_id,
+        httponly=True,
+        samesite="lax",
+        max_age=3600 * 24,
+    )
+    return streaming_response

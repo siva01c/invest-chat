@@ -8,12 +8,16 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-
 
 class Record:
     """Represents a document item to be indexed into ChromaDB."""
-    def __init__(self, doc_id: str, knowledge: List[str], metadata: Optional[List[Dict[str, Any]]] = None):
+
+    def __init__(
+        self,
+        doc_id: str,
+        knowledge: List[str],
+        metadata: Optional[List[Dict[str, Any]]] = None,
+    ):
         self.id = doc_id
         self.knowledge = knowledge
         self.metadata = metadata or []
@@ -30,25 +34,26 @@ class VectorStore:
         collection_name: str = "investment_knowledge",
         database_path: str = "chromadb",
     ):
-        """Initialize the vector store with ChromaDB and OpenAI Embeddings."""
+        """Initialize the vector store with ChromaDB and OpenAI Embeddings.
+
+        Raises:
+            EnvironmentError: if OPENAI_API_KEY is not set.
+        """
         api_key = os.getenv("OPENAI_API_KEY")
         if not api_key:
-            # Fallback to dummy for initialization or testing if key not set yet
-            api_key = "dummy"
-
-        original_api_key = os.environ.get("OPENAI_API_KEY")
-        os.environ["OPENAI_API_KEY"] = api_key
-        try:
-            self.embedding_function = embedding_functions.OpenAIEmbeddingFunction(
-                api_key_env_var="OPENAI_API_KEY", model_name="text-embedding-3-small"
+            raise EnvironmentError(
+                "OPENAI_API_KEY environment variable is not set. "
+                "Please add it to your .env file."
             )
-        finally:
-            if original_api_key is not None:
-                os.environ["OPENAI_API_KEY"] = original_api_key
-            else:
-                os.environ.pop("OPENAI_API_KEY", None)
 
-        self.chroma_client = chromadb.PersistentClient(path=database_path)
+        # Pass the API key directly — no global os.environ mutation needed.
+        self.embedding_function = embedding_functions.OpenAIEmbeddingFunction(
+            api_key=api_key,
+            model_name="text-embedding-3-small",
+        )
+
+        db_path = os.getenv("CHROMADB_PATH", database_path)
+        self.chroma_client = chromadb.PersistentClient(path=db_path)
         self.collection = self.chroma_client.get_or_create_collection(
             name=collection_name, embedding_function=self.embedding_function
         )
@@ -59,8 +64,14 @@ class VectorStore:
         for doc in documents:
             try:
                 doc_id = getattr(doc, "id", None) or f"doc_{stored_count}"
-                doc_text = " ".join(doc.knowledge) if isinstance(doc.knowledge, list) else str(doc.knowledge)
-                metadatas = doc.metadata if hasattr(doc, "metadata") and doc.metadata else [{}]
+                doc_text = (
+                    " ".join(doc.knowledge)
+                    if isinstance(doc.knowledge, list)
+                    else str(doc.knowledge)
+                )
+                metadatas = (
+                    doc.metadata if hasattr(doc, "metadata") and doc.metadata else [{}]
+                )
                 if isinstance(metadatas, list) and len(metadatas) > 0:
                     meta = metadatas[0] if isinstance(metadatas[0], dict) else {}
                 else:
@@ -94,7 +105,9 @@ class VectorStore:
 
         return contexts
 
-    async def search_similar_text(self, search_text: str, n_results: int = 3) -> List[Any]:
+    async def search_similar_text(
+        self, search_text: str, n_results: int = 3
+    ) -> List[Any]:
         """Search for similar text with distances and metadata."""
         try:
             results = await asyncio.to_thread(
