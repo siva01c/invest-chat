@@ -1,59 +1,65 @@
-"""Chat endpoints for the API."""
+"""Investment Chat API endpoints."""
 
-from typing import Any, Dict, Union
+import json
+from typing import AsyncGenerator
+from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import JSONResponse, StreamingResponse
+from pydantic import BaseModel, Field
 
-from fastapi import APIRouter, Depends, Request, Response
-from fastapi.responses import JSONResponse
+from assistant.core.services.chat_service import AIService
 
-from assistant.api.dependencies import get_optional_user
-from assistant.api.routes.chat_utils import handle_chat_endpoint
-from assistant.core.models import UserInfo
-
-router = APIRouter()
-
-
-@router.options("/")
-async def options_root() -> Response:
-    """Handle OPTIONS request for CORS."""
-    return Response(
-        status_code=200,
-        headers={
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type",
-        },
-    )
+router = APIRouter(prefix="/api/chat", tags=["chat"])
+ai_service = AIService()
 
 
+class ChatRequest(BaseModel):
+    message: str = Field(..., description="Dotaz uživatele")
+    messages: list = Field(default=[], description="Historie zpráv pro kompatibilitu UI")
+
+
+class ChatResponse(BaseModel):
+    response: str
+    text: str
+
+
+@router.post("", response_class=JSONResponse)
 @router.post("/", response_class=JSONResponse)
-async def chat(
-    request: Request, user: Union[UserInfo, None] = Depends(get_optional_user)
-) -> Dict[str, Any]:
-    """
-    Chat endpoint compatible with DeepChat (optional authentication)
+async def chat_endpoint(payload: ChatRequest):
+    """Synchronní chat endpoint pro generování odpovědí."""
+    user_msg = payload.message
+    if not user_msg and payload.messages:
+        # Extract last user message if using messages list format
+        for m in reversed(payload.messages):
+            if isinstance(m, dict) and m.get("role") == "user":
+                user_msg = m.get("content", "")
+                break
 
-    Args:
-        request: The incoming request with DeepChat format
-        user: Current authenticated user (optional)
+    if not user_msg:
+        raise HTTPException(status_code=400, detail="Zprávu nelze odeslat prázdnou.")
 
-    Returns:
-        JSON response in DeepChat-compatible format
-    """
-    return await handle_chat_endpoint(request)
+    response_text = await ai_service.chat(user_msg)
+    return {"response": response_text, "text": response_text}
 
 
-@router.post("/public", response_class=JSONResponse)
-async def chat_public(request: Request) -> Dict[str, Any]:
-    """
-    Public chat endpoint (no authentication required)
+@router.post("/stream")
+@router.get("/stream")
+async def chat_stream_endpoint(request: Request, message: str = ""):
+    """Streamovací endpoint pro Server-Sent Events (SSE)."""
+    user_msg = message
+    if not user_msg and request.method == "POST":
+        try:
+            body = await request.json()
+            user_msg = body.get("message", "")
+        except Exception:
+            pass
 
-    This endpoint provides the same functionality as the main chat endpoint
-    but without authentication requirements for backward compatibility.
+    if not user_msg:
+        raise HTTPException(status_code=400, detail="Dotaz nesmí být prázdný.")
 
-    Args:
-        request: The incoming request with DeepChat format
+    async def event_generator() -> AsyncGenerator[str, None]:
+        async for token in ai_service.stream_chat(user_msg):
+            data = json.dumps({"token": token})
+            yield f"data: {data}\n\n"
+        yield "data: [DONE]\n\n"
 
-    Returns:
-        JSON response in DeepChat-compatible format
-    """
-    return await handle_chat_endpoint(request)
+    return StreamingResponse(event_generator(), media_type="text/event-stream")

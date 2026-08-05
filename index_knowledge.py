@@ -1,11 +1,6 @@
 #!/usr/bin/env python3
 """
-Knowledge Base Indexing Script
-
-This script indexes all knowledge base data including:
-- Knowledge base JSON
-- LinkedIn posts JSON
-- Websites JSONL
+Investment Knowledge Base Indexing Script
 
 Usage: python3 index_knowledge.py
 """
@@ -17,40 +12,21 @@ import sys
 # Add src to Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
-from assistant.agent.processor import (
-    KnowledgeJsonProcessor,
-    LinkedinJsonProcessor,
-    WebsiteJsonlProcessor,
-)
+from assistant.agent.processor import InvestmentKnowledgeProcessor
 
 
 async def index_knowledge():
-    """Index all knowledge base data sources."""
+    """Index investment knowledge base data source."""
     try:
-        print("" "🔄 Starting knowledge base indexing...")
-
-        # Process knowledge base
-        print("📚 Processing knowledge base...")
-        knowledge_processor = KnowledgeJsonProcessor()
-        knowledge_result = await knowledge_processor.process_data("datasources/knowledge_base.json")
-        print(f"✅ Knowledge base indexed: {knowledge_result}")
-
-        # Process LinkedIn posts
-        print("💼 Processing LinkedIn posts...")
-        linkedin_processor = LinkedinJsonProcessor()
-        linkedin_result = await linkedin_processor.process_data("datasources/posts.json")
-        print(f"✅ LinkedIn posts indexed: {linkedin_result}")
-
-        # Process websites
-        print("🌐 Processing websites...")
-        website_processor = WebsiteJsonlProcessor()
-        websites_result = await website_processor.process_data("datasources/websites.jsonl")
-        print(f"✅ Websites indexed: {websites_result}")
-
-        print("🎉 All knowledge indexed successfully!")
+        print("🔄 Starting investment knowledge base indexing...")
+        processor = InvestmentKnowledgeProcessor()
+        kb_path = os.path.join("datasources", "investment_kb.json")
+        result = await processor.process_data(kb_path)
+        print(f"✅ Indexing result: {result}")
+        print("🎉 Investment knowledge base indexed successfully!")
 
     except Exception as e:
-        print(f"❌ Error indexing knowledge: {e}")
+        print(f"❌ Error indexing investment knowledge: {e}")
         sys.exit(1)
 
 
